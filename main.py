@@ -28,20 +28,32 @@ class StartWindow():
         self.label_WhToDo.pack(side = 'top')
 
         #----
+        #----
+
+        self.btn_next = ctk.CTkButton(self.root, text = 'Next', fg_color = '#388D70', hover_color = '#307860', command = )
+
+        #----
+
 
     def observer_for_entry(self, *_):
         self.link = self.entry_link.get()
-        if 'www.youtube.com/watch?v=' in self.link or 'www.youtube.com/playlist?list=' in self.link:
+        if 'www.youtube.com/watch?v=' in self.link and len(self.link) == 43 or 'www.youtube.com/playlist?list=' in self.link and len(self.link) == 49:
             self.entry_link.configure(fg = '#3B927E')
-            self.entry_link.fg = 'green'
+
+            self.btn_next.pack(side = 'bottom')
 
         elif 'youtu.be/' in self.entry_link.get():
             self.entry_link.configure(fg = '#3B927E')
-            self.entry_link.fg = 'green'
             self.link = 'https://www.youtube.com/watch?v=' + self.link[-11:]
+
+            self.btn_next.pack(side = 'bottom')
 
         else:
             self.entry_link.configure(fg = '#923B3B')
+
+            self.label_WhToDo.configure(text = 'Check your link. It must start w https://')
+
+
 
 
 def main():

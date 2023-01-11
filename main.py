@@ -1,3 +1,5 @@
+from pytube import YouTube, Playlist
+from PIL import Image, ImageTk
 from threading import Thread
 import customtkinter as ctk
 import tkinter as tk
@@ -30,7 +32,16 @@ class StartWindow():
         #----
         #----
 
-        self.btn_next = ctk.CTkButton(self.root, text = 'Next', fg_color = '#388D70', hover_color = '#307860', command = )
+        self.btn_next = ctk.CTkButton(self.root, text = 'Next', fg_color = '#388D70', hover_color = '#307860', command = self.preparing_info)
+
+        #----
+        #----
+
+        self.label_loading = ctk.CTkLabel(self.root, text = 'Loading...')
+
+        #----
+
+        self.main_list = [self.frame_main, self.label_WhToDo, self.btn_next, self.label_loading]
 
         #----
 
@@ -53,7 +64,85 @@ class StartWindow():
 
             self.label_WhToDo.configure(text = 'Check your link. It must start w https://')
 
+    def preparing_info(self):
+        self.label_loading.pack(side = 'bottom')
 
+        def main():
+            self.dwnld_thumbnail()
+
+            if  'www.youtube.com/watch?v=' in self.link:
+                self.yt = YouTube(self.link)
+                self.selfdestroying()
+                Video_dwnlder(self.root, self.link, self.thumbnail, self.yt)
+
+            elif 'www.youtube.com/playlist?list=' in self.link:
+                self.yt = Playlist(self.link)
+                self.selfdestroying()
+                Playlist_dwnlder(self.root, self.link, self.thumbnail, self.yt)
+
+            else:
+                self.label_WhToDo.configure(text = 'I dont know this type of link...')
+
+                return False
+
+        Thread(target = main, daemon = True).start()
+
+    def dwnld_thumbnail(self):
+        import regex as re
+        import requests
+        from io import BytesIO
+
+        TEMPLATE_VIDEO = 'https://i.ytimg.com/vi/{}/maxresdefault.jpg'
+        TEMPLATE_STREAM = 'https://i.ytimg.com/vi/{}/maxresdefault_live.jpg'
+        VARIANT_B = 'https://i.ytimg.com/vi/{}/sddefault.jpg'
+        VARIANT_BB = 'https://i.ytimg.com/vi/{}/hqdefault.jpg'
+
+        result = re.search(r'watch\?v=([a-zA-Z0-9_-]*)', self.link)
+
+        if result:
+            t_url = None
+            video_id = result.groups()[0]
+
+            req = requests.get(self.link)
+            page = req.content.decode('utf-8')
+
+            if TEMPLATE_STREAM.format(video_id) in page:
+                t_url = TEMPLATE_STREAM.format(video_id)
+
+            elif TEMPLATE_VIDEO.format(video_id) in page:
+                t_url = TEMPLATE_VIDEO.format(video_id)
+            
+            elif VARIANT_B.format(video_id) in page:
+                t_url = VARIANT_B.format(video_id)
+            
+            else:
+                t_url = VARIANT_BB.format(video_id)
+
+            self.req = requests.get(t_url)
+
+            pil_image = Image.open(BytesIO(self.req.content))
+            pil_image = pil_image.resize((640, 360))
+            self.thumbnail = ImageTk.PhotoImage(pil_image)
+
+    def selfdestroying(self):
+        for widget in self.main_list:
+            widget.pack_forget()
+
+
+
+class Video_dwnlder():
+    def __init__(self, root, link, thumbnail, yt):
+        self.root = root
+        self.link = link
+        self.thumbnail = thumbnail
+        self.yt = yt
+
+class Playlist_dwnlder():
+    def __init__(self, root, link, thumbnail, yt):
+        self.root = root
+        self.link = link
+        self.thumbnail = thumbnail
+        self.yt = yt
 
 
 def main():

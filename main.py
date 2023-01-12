@@ -150,7 +150,7 @@ class Video_dwnlder():
         #----
 
         self.frame_settings = ctk.CTkFrame(self.frame_left, fg_color = None)
-        self.frame_settings.pack(expand = True)
+        self.frame_settings.pack(pady = (20, 10))
         #----
         #-----
 
@@ -199,7 +199,7 @@ class Video_dwnlder():
         #----
 
         self.frame_for_cutting = ctk.CTkFrame(self.frame_left, fg_color = '#565B5E')
-        self.frame_for_cutting.pack(side = 'top', expand = True)
+        self.frame_for_cutting.pack(side = 'top')
 
         #----
         #-----
@@ -207,14 +207,14 @@ class Video_dwnlder():
         self.label_cutfrom = ctk.CTkLabel(self.frame_for_cutting, text = 'Cut from:')
         self.label_cutfrom.pack(side = 'top', pady = 5)
 
-        self.entry_time_cutfrom = ctk.CTkEntry(self.frame_for_cutting, width = 300, justify = tk.CENTER)
+        self.entry_time_cutfrom = ctk.CTkEntry(self.frame_for_cutting, width = 200, justify = tk.CENTER)
         self.entry_time_cutfrom.pack(side = 'top', pady = 5)
         self.entry_time_cutfrom.insert(tk.END, '00:00:00')
 
         self.label_cutto = ctk.CTkLabel(self.frame_for_cutting, text = 'Cut to:')
         self.label_cutto.pack(side = 'top', pady = 5)
 
-        self.entry_time_cutto = ctk.CTkEntry(self.frame_for_cutting, width = 300, justify = tk.CENTER)
+        self.entry_time_cutto = ctk.CTkEntry(self.frame_for_cutting, width = 200, justify = tk.CENTER)
         self.entry_time_cutto.pack(side = 'top', pady = 5)
         self.entry_time_cutto.insert(tk.END, self.get_video_length())
 
@@ -222,7 +222,7 @@ class Video_dwnlder():
         #----
 
         self.btn_dwnld_th = ctk.CTkButton(self.frame_left, text = 'Dwnld thumbnail', fg_color = '#388D70', hover_color = '#307860', command = self.dwnld_th)
-        self.btn_dwnld_th.pack(side = 'bottom')
+        self.btn_dwnld_th.pack(side = 'bottom', pady = (10, 20))
 
 
         #---

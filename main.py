@@ -137,6 +137,59 @@ class Video_dwnlder():
         self.thumbnail = thumbnail
         self.yt = yt
 
+
+        #---
+
+        self.frame_left = ctk.CTkFrame(self.root, fg_color = '#29292E')
+        self.frame_left.pack(side = 'left', fill = tk.Y)
+
+        #---
+        #----
+
+        self.frame_for_format = ctk.CTkFrame(self.frame_left, fg_color = None)
+        self.frame_for_format.pack(side = 'top', fill = tk.X, pady = 5)
+
+        #----
+        #-----
+
+        self.b_var = tk.BooleanVar()
+        self.b_var.set(1)
+
+        self.radio_mp3 = ctk.CTkRadioButton(self.frame_for_format, text = 'mp3', variable = self.b_var, value = 1, width = 15, height = 15, 
+            border_width_checked = 2, border_width_unchecked = 2, fg_color = '#388D70', hover_color = '#307860')
+        self.radio_mp3.pack(side = 'left', expand = True)
+
+        self.radio_mp4 = ctk.CTkRadioButton(self.frame_for_format, text = 'mp4', variable = self.b_var, value = 0, width = 15, height = 15, 
+            border_width_checked = 2, border_width_unchecked = 2, fg_color = '#388D70', hover_color = '#307860')
+        self.radio_mp4.pack(side = 'right', expand = True)
+
+        #-----
+        #----
+
+        self.frame_for_res = ctk.CTkFrame(self.frame_left, fg_color = None)
+        self.frame_for_res.pack(side = 'top', fill = tk.X, pady = 5)
+
+        #----
+        #-----
+
+        self.i_var = tk.IntVar()
+        self.i_var.set(2)
+
+        self.radio_360p = ctk.CTkRadioButton(self.frame_for_res, text = '360p', variable = self.i_var, value = 0, width = 15, height = 15, 
+            border_width_checked = 2, border_width_unchecked = 2, fg_color = '#388D70', hover_color = '#307860')
+        self.radio_360p.pack(side = 'left', padx = 3, expand = True)
+
+        self.radio_480p = ctk.CTkRadioButton(self.frame_for_res, text = '480p', variable = self.i_var, value = 1, width = 15, height = 15, 
+            border_width_checked = 2, border_width_unchecked = 2, fg_color = '#388D70', hover_color = '#307860')
+        self.radio_480p.pack(side = 'left', padx = 3, expand = True)
+
+        self.radio_720p = ctk.CTkRadioButton(self.frame_for_res, text = '720p', variable = self.i_var, value = 2, width = 15, height = 15, 
+            border_width_checked = 2, border_width_unchecked = 2, fg_color = '#388D70', hover_color = '#307860')
+        self.radio_720p.pack(side = 'left', padx = 3, expand = True)
+
+        #-----
+
+
 class Playlist_dwnlder():
     def __init__(self, root, link, thumbnail, yt):
         self.root = root

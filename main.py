@@ -143,7 +143,7 @@ class Video_dwnlder():
 
         #---
 
-        self.frame_left = ctk.CTkFrame(self.root, fg_color = '#29292E')
+        self.frame_left = ctk.CTkFrame(self.root, fg_color = '#29292E', width = 200)
         self.frame_left.pack(side = 'left', fill = tk.Y)
 
         #---
@@ -151,6 +151,7 @@ class Video_dwnlder():
 
         self.frame_settings = ctk.CTkFrame(self.frame_left, fg_color = None)
         self.frame_settings.pack(pady = (20, 10))
+
         #----
         #-----
 
@@ -233,10 +234,31 @@ class Video_dwnlder():
         #---
         #----
 
-        self.label_image = ctk.CTkLabel(self.frame_right, image = self.thumbnail)
-        self.label_image.pack(expand = True)
+        self.frame_th = ctk.CTkFrame(self.frame_right, fg_color = None)
+        self.frame_th.pack(expand = True)
 
         #----
+        #-----
+
+        self.label_yt_name = ctk.CTkLabel(self.frame_th, text = self.yt.title, wraplength = 600)
+        self.label_yt_name.pack(side = 'top')
+
+        self.label_image = ctk.CTkLabel(self.frame_th, image = self.thumbnail)
+        self.label_image.pack()
+
+        #-----
+        #----
+
+        self.frame_btn_dwnld = ctk.CTkFrame(self.frame_right, fg_color = None)
+        self.frame_btn_dwnld.pack(side = 'bottom', pady = 20, fill = tk.X)
+
+        #----
+        #-----
+
+        self.btn_dwnld = ctk.CTkButton(self.frame_btn_dwnld, text = 'Download', fg_color = '#388D70', hover_color = '#307860', command = self.prepare_dwnlding)
+        self.btn_dwnld.pack()
+
+        #-----
 
 
     def get_video_length(self):
@@ -263,9 +285,10 @@ class Video_dwnlder():
         else:
             seconds = str(seconds)
 
-        self.length = hours + ':' + minutes + ':' + seconds
+        self.video_length = hours + ':' + minutes + ':' + seconds
 
-        return self.length
+        return self.video_length
+
 
     def dwnld_th(self):
         output_path = askdirectory()
@@ -273,9 +296,23 @@ class Video_dwnlder():
         if output_path == '':
             output_path = str(Path.home() / "Downloads")
 
-        with open(output_path + '/' + Altruist(self.yt.title).get_cure()  + '.png', 'wb') as f:
+        AltruistInnited = Altruist()
+
+        with open(output_path + '/' + AltruistInnited.get_cure(name= self.yt.title)  + '.png', 'wb') as f:
             f.write(self.thumbnail_req.content)
         self.btn_dwnld_th.configure(text = '__Thumbnail dwnlded__')
+
+    
+    def prepare_dwnlding(self):
+        output_path = askdirectory()
+
+        if output_path == '':
+            output_path = str(Path.home() / "Downloads")
+
+        AltruistInnited = Altruist()
+
+        if self.entry_time_cutfrom.get() == '00:00:00' and self.entry_time_cutto.get() == self.video_length:
+            AltruistInnited.dwnld_video_mp3(yt= self.yt, output_path= output_path)
 
 
 class Playlist_dwnlder():
@@ -288,8 +325,10 @@ class Playlist_dwnlder():
 
 
 class Altruist():
-    def __init__(self, name):
+    def __init__(self):
+        None
 
+    def get_cure(self, name):
         list_of_prohibited = ['/', ':', '*', '?', '"', '<', '>', '|', '.', ',']
 
         for sign in list_of_prohibited:
@@ -304,8 +343,19 @@ class Altruist():
         
         self.name = name
 
-    def get_cure(self):
         return self.name
+
+    def dwnld_video_mp3(self, yt, output_path):
+        def main():
+            video = yt.streams.filter(only_audio = True).first()
+            out_file = video.download(output_path = output_path)
+
+            os.rename(out_file, out_file[:-3]+"mp3")
+        Thread(target = main, daemon = True).start()
+
+    def dwnld_video_mp3_cut(self, link, cutfrom, cutto):
+        None
+
 
 
 def main():

@@ -1,7 +1,9 @@
+from tkinter.filedialog import askdirectory
 from pytube import YouTube, Playlist
 from PIL import Image, ImageTk
 from threading import Thread
 import customtkinter as ctk
+from pathlib import Path
 import tkinter as tk
 import os
 
@@ -73,12 +75,12 @@ class StartWindow():
             if  'www.youtube.com/watch?v=' in self.link:
                 self.yt = YouTube(self.link)
                 self.selfdestroying()
-                Video_dwnlder(self.root, self.link, self.thumbnail, self.yt)
+                Video_dwnlder(self.root, self.link, self.thumbnail, self.yt, self.req)
 
             elif 'www.youtube.com/playlist?list=' in self.link:
                 self.yt = Playlist(self.link)
                 self.selfdestroying()
-                Playlist_dwnlder(self.root, self.link, self.thumbnail, self.yt)
+                Playlist_dwnlder(self.root, self.link, self.thumbnail, self.yt, self.req)
 
             else:
                 self.label_WhToDo.configure(text = 'I dont know this type of link...')
@@ -131,11 +133,12 @@ class StartWindow():
 
 
 class Video_dwnlder():
-    def __init__(self, root, link, thumbnail, yt):
+    def __init__(self, root, link, thumbnail, yt, thumbnail_req):
         self.root = root
         self.link = link
         self.thumbnail = thumbnail
         self.yt = yt
+        self.thumbnail_req = thumbnail_req
 
 
         #---
@@ -146,11 +149,16 @@ class Video_dwnlder():
         #---
         #----
 
-        self.frame_for_format = ctk.CTkFrame(self.frame_left, fg_color = None)
-        self.frame_for_format.pack(side = 'top', fill = tk.X, pady = 5)
-
+        self.frame_settings = ctk.CTkFrame(self.frame_left, fg_color = None)
+        self.frame_settings.pack(expand = True)
         #----
         #-----
+
+        self.frame_for_format = ctk.CTkFrame(self.frame_settings, fg_color = None)
+        self.frame_for_format.pack(side = 'top', fill = tk.X, pady = 5)
+
+        #-----
+        #------
 
         self.b_var = tk.BooleanVar()
         self.b_var.set(1)
@@ -163,14 +171,14 @@ class Video_dwnlder():
             border_width_checked = 2, border_width_unchecked = 2, fg_color = '#388D70', hover_color = '#307860')
         self.radio_mp4.pack(side = 'right', expand = True)
 
+        #------
         #-----
-        #----
 
-        self.frame_for_res = ctk.CTkFrame(self.frame_left, fg_color = None)
+        self.frame_for_res = ctk.CTkFrame(self.frame_settings, fg_color = None)
         self.frame_for_res.pack(side = 'top', fill = tk.X, pady = 5)
 
-        #----
         #-----
+        #------
 
         self.i_var = tk.IntVar()
         self.i_var.set(2)
@@ -187,7 +195,7 @@ class Video_dwnlder():
             border_width_checked = 2, border_width_unchecked = 2, fg_color = '#388D70', hover_color = '#307860')
         self.radio_720p.pack(side = 'left', padx = 3, expand = True)
 
-        #-----
+        #------
         #----
 
         self.frame_for_cutting = ctk.CTkFrame(self.frame_left, fg_color = '#565B5E')
@@ -210,7 +218,11 @@ class Video_dwnlder():
         self.entry_time_cutto.pack(side = 'top', pady = 5)
         self.entry_time_cutto.insert(tk.END, self.get_video_length())
 
+        #-----
         #----
+
+        self.btn_dwnld_th = ctk.CTkButton(self.frame_left, text = 'Dwnld thumbnail', fg_color = '#388D70', hover_color = '#307860', command = self.dwnld_th)
+        self.btn_dwnld_th.pack(side = 'bottom')
 
 
         #---
@@ -255,13 +267,45 @@ class Video_dwnlder():
 
         return self.length
 
+    def dwnld_th(self):
+        output_path = askdirectory()
+
+        if output_path == '':
+            output_path = str(Path.home() / "Downloads")
+
+        with open(output_path + '/' + Altruist(self.yt.title).get_cure()  + '.png', 'wb') as f:
+            f.write(self.thumbnail_req.content)
+        self.btn_dwnld_th.configure(text = '__Thumbnail dwnlded__')
+
 
 class Playlist_dwnlder():
-    def __init__(self, root, link, thumbnail, yt):
+    def __init__(self, root, link, thumbnail, yt, thumbnail_req):
         self.root = root
         self.link = link
         self.thumbnail = thumbnail
         self.yt = yt
+        self.thumbnail_req = thumbnail_req
+
+
+class Altruist():
+    def __init__(self, name):
+
+        list_of_prohibited = ['/', ':', '*', '?', '"', '<', '>', '|', '.', ',']
+
+        for sign in list_of_prohibited:
+            if sign in name:
+                name = name.replace(sign, '')
+
+            else:
+                None
+
+        if name.find('\\') != -1:
+            name = name.replace('\\', '')
+        
+        self.name = name
+
+    def get_cure(self):
+        return self.name
 
 
 def main():

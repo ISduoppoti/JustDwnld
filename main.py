@@ -188,6 +188,72 @@ class Video_dwnlder():
         self.radio_720p.pack(side = 'left', padx = 3, expand = True)
 
         #-----
+        #----
+
+        self.frame_for_cutting = ctk.CTkFrame(self.frame_left, fg_color = '#565B5E')
+        self.frame_for_cutting.pack(side = 'top', expand = True)
+
+        #----
+        #-----
+
+        self.label_cutfrom = ctk.CTkLabel(self.frame_for_cutting, text = 'Cut from:')
+        self.label_cutfrom.pack(side = 'top', pady = 5)
+
+        self.entry_time_cutfrom = ctk.CTkEntry(self.frame_for_cutting, width = 300, justify = tk.CENTER)
+        self.entry_time_cutfrom.pack(side = 'top', pady = 5)
+        self.entry_time_cutfrom.insert(tk.END, '00:00:00')
+
+        self.label_cutto = ctk.CTkLabel(self.frame_for_cutting, text = 'Cut to:')
+        self.label_cutto.pack(side = 'top', pady = 5)
+
+        self.entry_time_cutto = ctk.CTkEntry(self.frame_for_cutting, width = 300, justify = tk.CENTER)
+        self.entry_time_cutto.pack(side = 'top', pady = 5)
+        self.entry_time_cutto.insert(tk.END, self.get_video_length())
+
+        #----
+
+
+        #---
+
+        self.frame_right = ctk.CTkFrame(self.root, fg_color = '#1E1E1E')
+        self.frame_right.pack(expand = True,  fill = tk.BOTH)
+
+        #---
+        #----
+
+        self.label_image = ctk.CTkLabel(self.frame_right, image = self.thumbnail)
+        self.label_image.pack(expand = True)
+
+        #----
+
+
+    def get_video_length(self):
+        hours = self.yt.length / 3600
+        hours = int(hours)
+
+        minutes = self.yt.length / 60 - hours*60
+        minutes = int(minutes)
+
+        seconds = self.yt.length - hours*3600 - minutes*60
+
+        if hours in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
+            hours = '0'+str(hours)
+        else:
+            hours = str(hours)
+
+        if minutes in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
+            minutes = '0'+str(minutes)
+        else:
+            minutes = str(minutes)
+
+        if seconds in [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]:
+            seconds = '0'+str(seconds)
+        else:
+            seconds = str(seconds)
+
+        self.length = hours + ':' + minutes + ':' + seconds
+
+        return self.length
 
 
 class Playlist_dwnlder():

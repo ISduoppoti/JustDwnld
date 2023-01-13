@@ -70,17 +70,21 @@ class StartWindow():
         self.label_loading.pack(side = 'bottom')
 
         def main():
+            global Main_window, AltruistInnited
+
+            AltruistInnited = Altruist()
+
             self.dwnld_thumbnail()
 
             if  'www.youtube.com/watch?v=' in self.link:
                 self.yt = YouTube(self.link)
                 self.selfdestroying()
-                Video_dwnlder(self.root, self.link, self.thumbnail, self.yt, self.req)
+                Main_window = Video_dwnlder(self.root, self.link, self.thumbnail, self.yt, self.req)
 
             elif 'www.youtube.com/playlist?list=' in self.link:
                 self.yt = Playlist(self.link)
                 self.selfdestroying()
-                Playlist_dwnlder(self.root, self.link, self.thumbnail, self.yt, self.req)
+                Main_window = Playlist_dwnlder(self.root, self.link, self.thumbnail, self.yt, self.req)
 
             else:
                 self.label_WhToDo.configure(text = 'I dont know this type of link...')
@@ -296,11 +300,9 @@ class Video_dwnlder():
         if output_path == '':
             output_path = str(Path.home() / "Downloads")
 
-        AltruistInnited = Altruist()
-
         with open(output_path + '/' + AltruistInnited.get_cure(name= self.yt.title)  + '.png', 'wb') as f:
             f.write(self.thumbnail_req.content)
-        self.btn_dwnld_th.configure(text = '__Thumbnail dwnlded__')
+        self.btn_dwnld_th.configure(text = '_Thumbnail dwnlded_')
 
     
     def prepare_dwnlding(self):
@@ -309,10 +311,12 @@ class Video_dwnlder():
         if output_path == '':
             output_path = str(Path.home() / "Downloads")
 
-        AltruistInnited = Altruist()
-
         if self.entry_time_cutfrom.get() == '00:00:00' and self.entry_time_cutto.get() == self.video_length:
             AltruistInnited.dwnld_video_mp3(yt= self.yt, output_path= output_path)
+
+        elif self.entry_time_cutfrom.get() != '00:00:00' or self.entry_time_cutto.get() != self.video_length:
+            AltruistInnited.dwnld_video_mp3_cut(yt= self.yt, output_path= output_path, cutfrom= self.entry_time_cutfrom.get(), cutto= self.entry_time_cutto.get())
+
 
 
 class Playlist_dwnlder():
@@ -347,14 +351,47 @@ class Altruist():
 
     def dwnld_video_mp3(self, yt, output_path):
         def main():
+            Main_window.btn_dwnld.configure(text = 'Downloading...')
+
             video = yt.streams.filter(only_audio = True).first()
             out_file = video.download(output_path = output_path)
 
             os.rename(out_file, out_file[:-3]+"mp3")
+
+            Main_window.btn_dwnld.configure(text = '_Downloaded_')
+
         Thread(target = main, daemon = True).start()
 
-    def dwnld_video_mp3_cut(self, link, cutfrom, cutto):
-        None
+    def dwnld_video_mp3_cut(self, yt, output_path, cutfrom, cutto):
+        def main():
+            Main_window.btn_dwnld.configure(text = 'Downloading...')
+
+            current_dir = os.getcwd()
+
+            video = yt.streams.filter(only_audio = True).first()
+            out_file = video.download(output_path = output_path)
+            new_file = out_file[:-3]+"mp3"
+
+            os.rename(out_file, new_file)
+
+            Main_window.btn_dwnld.configure(text = 'Processing...')
+
+            os.chdir(output_path)
+
+            cmd = 'ffmpeg -i "{}" -ss {} -to {} -async 1 "{}"'.format(new_file, cutfrom,
+                cutto, new_file[:-4] + 'C' + '.mp3')
+
+            os.system(cmd)
+
+            os.remove(new_file)
+
+            os.chdir(current_dir)
+
+            Main_window.btn_dwnld.configure(text = '_Downloaded_')
+
+        Thread(target = main, daemon = True).start()
+
+
 
 
 

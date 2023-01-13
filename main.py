@@ -185,18 +185,18 @@ class Video_dwnlder():
         #-----
         #------
 
-        self.i_var = tk.IntVar()
-        self.i_var.set(2)
+        self.s_var = tk.StringVar()
+        self.s_var.set('720p')
 
-        self.radio_360p = ctk.CTkRadioButton(self.frame_for_res, text = '360p', variable = self.i_var, value = 0, width = 15, height = 15, 
+        self.radio_360p = ctk.CTkRadioButton(self.frame_for_res, text = '360p', variable = self.s_var, value = '360p', width = 15, height = 15, 
             border_width_checked = 2, border_width_unchecked = 2, fg_color = '#388D70', hover_color = '#307860')
         self.radio_360p.pack(side = 'left', padx = 3, expand = True)
 
-        self.radio_480p = ctk.CTkRadioButton(self.frame_for_res, text = '480p', variable = self.i_var, value = 1, width = 15, height = 15, 
+        self.radio_480p = ctk.CTkRadioButton(self.frame_for_res, text = '480p', variable = self.s_var, value = '480p', width = 15, height = 15, 
             border_width_checked = 2, border_width_unchecked = 2, fg_color = '#388D70', hover_color = '#307860')
         self.radio_480p.pack(side = 'left', padx = 3, expand = True)
 
-        self.radio_720p = ctk.CTkRadioButton(self.frame_for_res, text = '720p', variable = self.i_var, value = 2, width = 15, height = 15, 
+        self.radio_720p = ctk.CTkRadioButton(self.frame_for_res, text = '720p', variable = self.s_var, value = '720p', width = 15, height = 15, 
             border_width_checked = 2, border_width_unchecked = 2, fg_color = '#388D70', hover_color = '#307860')
         self.radio_720p.pack(side = 'left', padx = 3, expand = True)
 
@@ -311,11 +311,26 @@ class Video_dwnlder():
         if output_path == '':
             output_path = str(Path.home() / "Downloads")
 
-        if self.entry_time_cutfrom.get() == '00:00:00' and self.entry_time_cutto.get() == self.video_length:
-            AltruistInnited.dwnld_video_mp3(yt= self.yt, output_path= output_path)
+        #If it mp4
+        if self.b_var.get() == 0:
+            #If we dont need to cut
+            if self.entry_time_cutfrom.get() == '00:00:00' and self.entry_time_cutto.get() == self.video_length:
+                AltruistInnited.dwnld_video_mp4(yt= self.yt, res= self.s_var.get(), output_path= output_path)
 
-        elif self.entry_time_cutfrom.get() != '00:00:00' or self.entry_time_cutto.get() != self.video_length:
-            AltruistInnited.dwnld_video_mp3_cut(yt= self.yt, output_path= output_path, cutfrom= self.entry_time_cutfrom.get(), cutto= self.entry_time_cutto.get())
+            #If we need to cut
+            elif self.entry_time_cutfrom.get() != '00:00:00' or self.entry_time_cutto.get() != self.video_length:
+                None
+
+
+        #If it mp3
+        elif self.b_var.get() == 1:
+            #If we dont need to cut
+            if self.entry_time_cutfrom.get() == '00:00:00' and self.entry_time_cutto.get() == self.video_length:
+                AltruistInnited.dwnld_video_mp3(yt= self.yt, output_path= output_path)
+
+            #If we need to cut
+            elif self.entry_time_cutfrom.get() != '00:00:00' or self.entry_time_cutto.get() != self.video_length:
+                AltruistInnited.dwnld_video_mp3_cut(yt= self.yt, output_path= output_path, cutfrom= self.entry_time_cutfrom.get(), cutto= self.entry_time_cutto.get())
 
 
 
@@ -362,6 +377,7 @@ class Altruist():
 
         Thread(target = main, daemon = True).start()
 
+    
     def dwnld_video_mp3_cut(self, yt, output_path, cutfrom, cutto):
         def main():
             Main_window.btn_dwnld.configure(text = 'Downloading...')
@@ -391,8 +407,17 @@ class Altruist():
 
         Thread(target = main, daemon = True).start()
 
+    
+    def dwnld_video_mp4(self, yt, res, output_path):
+        def main():
+            Main_window.btn_dwnld.configure(text = 'Downloading...')
 
+            video = yt.streams.filter(file_extension = 'mp4', res = res).first()
+            out_file = video.download(output_path = output_path)
 
+            Main_window.btn_dwnld.configure(text = '_Downloaded_')
+        
+        Thread(target = main, daemon = True).start()
 
 
 def main():

@@ -319,7 +319,7 @@ class Video_dwnlder():
 
             #If we need to cut
             elif self.entry_time_cutfrom.get() != '00:00:00' or self.entry_time_cutto.get() != self.video_length:
-                None
+                AltruistInnited.dwnld_video_mp4_cut(yt= self.yt, res= self.s_var.get(), output_path= output_path, cutfrom= self.entry_time_cutfrom.get(), cutto= self.entry_time_cutto.get())
 
 
         #If it mp3
@@ -418,6 +418,35 @@ class Altruist():
             Main_window.btn_dwnld.configure(text = '_Downloaded_')
         
         Thread(target = main, daemon = True).start()
+
+    
+    def dwnld_video_mp4_cut(self, yt, res, output_path, cutfrom, cutto):
+        def main():
+            Main_window.btn_dwnld.configure(text = 'Downloading...')
+
+            current_dir = os.getcwd()
+
+            video = yt.streams.filter(file_extension = 'mp4', res = res).first()
+            out_file = video.download(output_path = output_path)
+            full_file = out_file[:-4] + '(full).mp4'
+
+            os.rename(out_file, full_file)
+
+            os.chdir(output_path)
+
+            cmd = 'ffmpeg -i "{}" -ss {} -to {} -async 1 "{}"'.format(full_file, cutfrom,
+                cutto, out_file[:-4] + '(cutted)' + '.mp4')
+
+            Main_window.btn_dwnld.configure(text = 'Processing...')
+
+            os.system(cmd)
+
+            os.chdir(current_dir)
+
+            Main_window.btn_dwnld.configure(text = '_Downloaded_')
+
+        Thread(target = main, daemon = True).start()
+
 
 
 def main():

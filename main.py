@@ -50,7 +50,7 @@ class StartWindow():
 
     def observer_for_entry(self, *_):
         self.link = self.entry_link.get()
-        if 'www.youtube.com/watch?v=' in self.link and len(self.link) == 43 or 'www.youtube.com/playlist?list=' in self.link and len(self.link) == 49:
+        if 'www.youtube.com/watch?v=' in self.link and len(self.link) == 43 or 'www.youtube.com/playlist?list=' in self.link:
             self.entry_link.configure(fg = '#3B927E')
 
             self.btn_next.pack(side = 'bottom')
@@ -70,28 +70,37 @@ class StartWindow():
         self.label_loading.pack(side = 'bottom')
 
         def main():
-            global Main_window, AltruistInnited
+            global AltruistInnited
 
             AltruistInnited = Altruist()
 
             self.dwnld_thumbnail()
 
-            if  'www.youtube.com/watch?v=' in self.link:
-                self.yt = YouTube(self.link)
-                self.selfdestroying()
-                Main_window = Video_dwnlder(self.root, self.link, self.thumbnail, self.yt, self.req)
+            self.init_main_window()
+        
+        preparing_info = Thread(target = main, daemon = True)
+        preparing_info.start()
 
-            elif 'www.youtube.com/playlist?list=' in self.link:
-                self.yt = Playlist(self.link)
-                self.selfdestroying()
-                Main_window = Playlist_dwnlder(self.root, self.link, self.thumbnail, self.yt, self.req)
+    def init_main_window(self):
+        global Main_window
 
-            else:
-                self.label_WhToDo.configure(text = 'I dont know this type of link...')
+        if  'www.youtube.com/watch?v=' in self.link:
+            self.yt = YouTube(self.link)
+            self.selfdestroying()
+            Main_window = Video_dwnlder(self.root, self.link, self.thumbnail, self.yt, self.req)
 
-                return False
+        elif 'www.youtube.com/playlist?list=' in self.link:
+            self.yt = Playlist(self.link)
+            self.selfdestroying()
+            Main_window = Playlist_dwnlder(self.root, self.link, self.thumbnail, self.yt, self.req)
 
-        Thread(target = main, daemon = True).start()
+        else:
+            self.label_WhToDo.configure(text = 'I dont know this type of link...')
+
+            return False
+
+
+
 
     def dwnld_thumbnail(self):
         import regex as re
@@ -103,13 +112,20 @@ class StartWindow():
         VARIANT_B = 'https://i.ytimg.com/vi/{}/sddefault.jpg'
         VARIANT_BB = 'https://i.ytimg.com/vi/{}/hqdefault.jpg'
 
-        result = re.search(r'watch\?v=([a-zA-Z0-9_-]*)', self.link)
+        if 'www.youtube.com/playlist?list=' in self.link:
+            yt = Playlist(self.link)
+            th_link = yt.video_urls[0]
+
+        else:
+            th_link = self.link
+
+        result = re.search(r'watch\?v=([a-zA-Z0-9_-]*)', th_link)
 
         if result:
             t_url = None
             video_id = result.groups()[0]
 
-            req = requests.get(self.link)
+            req = requests.get(th_link)
             page = req.content.decode('utf-8')
 
             if TEMPLATE_STREAM.format(video_id) in page:
@@ -129,6 +145,7 @@ class StartWindow():
             pil_image = Image.open(BytesIO(self.req.content))
             pil_image = pil_image.resize((640, 360))
             self.thumbnail = ImageTk.PhotoImage(pil_image)
+
 
     def selfdestroying(self):
         for widget in self.main_list:
@@ -306,31 +323,34 @@ class Video_dwnlder():
 
     
     def prepare_dwnlding(self):
-        output_path = askdirectory()
+        def main():
+            output_path = askdirectory()
 
-        if output_path == '':
-            output_path = str(Path.home() / "Downloads")
+            if output_path == '':
+                output_path = str(Path.home() / "Downloads")
 
-        #If it mp4
-        if self.b_var.get() == 0:
-            #If we dont need to cut
-            if self.entry_time_cutfrom.get() == '00:00:00' and self.entry_time_cutto.get() == self.video_length:
-                AltruistInnited.dwnld_video_mp4(yt= self.yt, res= self.s_var.get(), output_path= output_path)
+            #If it mp4
+            if self.b_var.get() == 0:
+                #If we dont need to cut
+                if self.entry_time_cutfrom.get() == '00:00:00' and self.entry_time_cutto.get() == self.video_length:
+                    AltruistInnited.dwnld_video_mp4(yt= self.yt, res= self.s_var.get(), output_path= output_path)
 
-            #If we need to cut
-            elif self.entry_time_cutfrom.get() != '00:00:00' or self.entry_time_cutto.get() != self.video_length:
-                AltruistInnited.dwnld_video_mp4_cut(yt= self.yt, res= self.s_var.get(), output_path= output_path, cutfrom= self.entry_time_cutfrom.get(), cutto= self.entry_time_cutto.get())
+                #If we need to cut
+                elif self.entry_time_cutfrom.get() != '00:00:00' or self.entry_time_cutto.get() != self.video_length:
+                    AltruistInnited.dwnld_video_mp4_cut(yt= self.yt, res= self.s_var.get(), output_path= output_path, cutfrom= self.entry_time_cutfrom.get(), cutto= self.entry_time_cutto.get())
 
 
-        #If it mp3
-        elif self.b_var.get() == 1:
-            #If we dont need to cut
-            if self.entry_time_cutfrom.get() == '00:00:00' and self.entry_time_cutto.get() == self.video_length:
-                AltruistInnited.dwnld_video_mp3(yt= self.yt, output_path= output_path)
+            #If it mp3
+            elif self.b_var.get() == 1:
+                #If we dont need to cut
+                if self.entry_time_cutfrom.get() == '00:00:00' and self.entry_time_cutto.get() == self.video_length:
+                    AltruistInnited.dwnld_video_mp3(yt= self.yt, output_path= output_path)
 
-            #If we need to cut
-            elif self.entry_time_cutfrom.get() != '00:00:00' or self.entry_time_cutto.get() != self.video_length:
-                AltruistInnited.dwnld_video_mp3_cut(yt= self.yt, output_path= output_path, cutfrom= self.entry_time_cutfrom.get(), cutto= self.entry_time_cutto.get())
+                #If we need to cut
+                elif self.entry_time_cutfrom.get() != '00:00:00' or self.entry_time_cutto.get() != self.video_length:
+                    AltruistInnited.dwnld_video_mp3_cut(yt= self.yt, output_path= output_path, cutfrom= self.entry_time_cutfrom.get(), cutto= self.entry_time_cutto.get())
+
+        Thread(target = main, daemon = True).start()
 
 
 
@@ -341,6 +361,146 @@ class Playlist_dwnlder():
         self.thumbnail = thumbnail
         self.yt = yt
         self.thumbnail_req = thumbnail_req
+
+
+        #---
+
+        self.frame_left = ctk.CTkFrame(self.root, fg_color = '#29292E', width = 200)
+        self.frame_left.pack(side = 'left', fill = tk.Y)
+
+        #---
+        #----
+
+        self.frame_settings = ctk.CTkFrame(self.frame_left, fg_color = None)
+        self.frame_settings.pack(pady = (20, 10))
+
+        #----
+        #-----
+
+        self.frame_for_format = ctk.CTkFrame(self.frame_settings, fg_color = None)
+        self.frame_for_format.pack(side = 'top', fill = tk.X, pady = 5)
+
+        #-----
+        #------
+
+        self.b_var = tk.BooleanVar()
+        self.b_var.set(1)
+
+        self.radio_mp3 = ctk.CTkRadioButton(self.frame_for_format, text = 'mp3', variable = self.b_var, value = 1, width = 15, height = 15, 
+            border_width_checked = 2, border_width_unchecked = 2, fg_color = '#388D70', hover_color = '#307860')
+        self.radio_mp3.pack(side = 'left', expand = True)
+
+        self.radio_mp4 = ctk.CTkRadioButton(self.frame_for_format, text = 'mp4', variable = self.b_var, value = 0, width = 15, height = 15, 
+            border_width_checked = 2, border_width_unchecked = 2, fg_color = '#388D70', hover_color = '#307860')
+        self.radio_mp4.pack(side = 'right', expand = True)
+
+        #------
+        #-----
+
+        self.frame_for_res = ctk.CTkFrame(self.frame_settings, fg_color = None)
+        self.frame_for_res.pack(side = 'top', fill = tk.X, pady = 5)
+
+        #-----
+        #------
+
+        self.s_var = tk.StringVar()
+        self.s_var.set('720p')
+
+        self.radio_360p = ctk.CTkRadioButton(self.frame_for_res, text = '360p', variable = self.s_var, value = '360p', width = 15, height = 15, 
+            border_width_checked = 2, border_width_unchecked = 2, fg_color = '#388D70', hover_color = '#307860')
+        self.radio_360p.pack(side = 'left', padx = 3, expand = True)
+
+        self.radio_480p = ctk.CTkRadioButton(self.frame_for_res, text = '480p', variable = self.s_var, value = '480p', width = 15, height = 15, 
+            border_width_checked = 2, border_width_unchecked = 2, fg_color = '#388D70', hover_color = '#307860')
+        self.radio_480p.pack(side = 'left', padx = 3, expand = True)
+
+        self.radio_720p = ctk.CTkRadioButton(self.frame_for_res, text = '720p', variable = self.s_var, value = '720p', width = 15, height = 15, 
+            border_width_checked = 2, border_width_unchecked = 2, fg_color = '#388D70', hover_color = '#307860')
+        self.radio_720p.pack(side = 'left', padx = 3, expand = True)
+
+        #------
+        #----
+
+        self.frame_for_cutting = ctk.CTkFrame(self.frame_left, fg_color = '#565B5E')
+        self.frame_for_cutting.pack(expand = True, fill = tk.BOTH, padx = (10, 10))
+
+        #----
+        #----
+
+        self.btn_dwnld_th = ctk.CTkButton(self.frame_left, text = 'Dwnld thumbnail', fg_color = '#388D70', hover_color = '#307860', command = self.dwnld_th)
+        self.btn_dwnld_th.pack(side = 'bottom', pady = (10, 20))
+
+
+        #---
+
+        self.frame_right = ctk.CTkFrame(self.root, fg_color = '#1E1E1E')
+        self.frame_right.pack(expand = True,  fill = tk.BOTH)
+
+        #---
+        #----
+
+        self.frame_th = ctk.CTkFrame(self.frame_right, fg_color = None)
+        self.frame_th.pack(expand = True)
+
+        #----
+        #-----
+
+        self.label_yt_name = ctk.CTkLabel(self.frame_th, text = self.yt.title, wraplength = 600)
+        self.label_yt_name.pack(side = 'top')
+
+        self.label_image = ctk.CTkLabel(self.frame_th, image = self.thumbnail)
+        self.label_image.pack()
+
+        #-----
+        #----
+
+        self.frame_btn_dwnld = ctk.CTkFrame(self.frame_right, fg_color = None)
+        self.frame_btn_dwnld.pack(side = 'bottom', pady = 20, fill = tk.X)
+
+        #----
+        #-----
+
+        self.btn_dwnld = ctk.CTkButton(self.frame_btn_dwnld, text = 'Download', fg_color = '#388D70', hover_color = '#307860', command = self.prepare_dwnlding)
+        self.btn_dwnld.pack()
+
+        #-----
+
+    def prepare_dwnlding(self):
+        def main():
+            output_path = askdirectory()
+
+            if output_path == '':
+                output_path = str(Path.home() / "Downloads")
+
+            #If it mp4
+            if self.b_var.get() == 0:
+                for link in self.yt.video_urls:
+                    yt = YouTube(link)
+                    AltruistInnited.dwnld_video_mp4(yt= yt, res= self.s_var.get(), output_path= output_path)
+
+                Main_window.btn_dwnld.configure(text = '_Playlist dwnlded_')
+
+
+            #If it mp3
+            elif self.b_var.get() == 1:
+                for link in self.yt.video_urls:
+                    yt = YouTube(link)
+                    AltruistInnited.dwnld_video_mp3(yt= yt, output_path= output_path)
+
+                Main_window.btn_dwnld.configure(text = '_Playlist dwnlded_')
+                
+        Thread(target = main, daemon = True).start()
+
+
+    def dwnld_th(self):
+        output_path = askdirectory()
+
+        if output_path == '':
+            output_path = str(Path.home() / "Downloads")
+
+        with open(output_path + '/' + AltruistInnited.get_cure(name= self.yt.title)  + '.png', 'wb') as f:
+            f.write(self.thumbnail_req.content)
+        self.btn_dwnld_th.configure(text = '_Thumbnail dwnlded_')
 
 
 class Altruist():
@@ -365,88 +525,75 @@ class Altruist():
         return self.name
 
     def dwnld_video_mp3(self, yt, output_path):
-        def main():
-            Main_window.btn_dwnld.configure(text = 'Downloading...')
+        Main_window.btn_dwnld.configure(text = 'Downloading...')
 
-            video = yt.streams.filter(only_audio = True).first()
-            out_file = video.download(output_path = output_path)
+        video = yt.streams.filter(only_audio = True).first()
+        out_file = video.download(output_path = output_path)
 
-            os.rename(out_file, out_file[:-3]+"mp3")
+        os.rename(out_file, out_file[:-3]+"mp3")
 
-            Main_window.btn_dwnld.configure(text = '_Downloaded_')
-
-        Thread(target = main, daemon = True).start()
+        Main_window.btn_dwnld.configure(text = '_Downloaded_')
 
     
     def dwnld_video_mp3_cut(self, yt, output_path, cutfrom, cutto):
-        def main():
-            Main_window.btn_dwnld.configure(text = 'Downloading...')
+        Main_window.btn_dwnld.configure(text = 'Downloading...')
 
-            current_dir = os.getcwd()
+        current_dir = os.getcwd()
 
-            video = yt.streams.filter(only_audio = True).first()
-            out_file = video.download(output_path = output_path)
-            new_file = out_file[:-3]+"mp3"
+        video = yt.streams.filter(only_audio = True).first()
+        out_file = video.download(output_path = output_path)
+        new_file = out_file[:-3]+"mp3"
 
-            os.rename(out_file, new_file)
+        os.rename(out_file, new_file)
 
-            Main_window.btn_dwnld.configure(text = 'Processing...')
+        Main_window.btn_dwnld.configure(text = 'Processing...')
 
-            os.chdir(output_path)
+        os.chdir(output_path)
 
-            cmd = 'ffmpeg -i "{}" -ss {} -to {} -async 1 "{}"'.format(new_file, cutfrom,
-                cutto, new_file[:-4] + 'C' + '.mp3')
+        cmd = 'ffmpeg -i "{}" -ss {} -to {} -async 1 "{}"'.format(new_file, cutfrom,
+            cutto, new_file[:-4] + 'C' + '.mp3')
 
-            os.system(cmd)
+        os.system(cmd)
 
-            os.remove(new_file)
+        os.remove(new_file)
 
-            os.chdir(current_dir)
+        os.chdir(current_dir)
 
-            Main_window.btn_dwnld.configure(text = '_Downloaded_')
-
-        Thread(target = main, daemon = True).start()
+        Main_window.btn_dwnld.configure(text = '_Downloaded_')
 
     
     def dwnld_video_mp4(self, yt, res, output_path):
-        def main():
-            Main_window.btn_dwnld.configure(text = 'Downloading...')
+        Main_window.btn_dwnld.configure(text = 'Downloading...')
 
-            video = yt.streams.filter(file_extension = 'mp4', res = res).first()
-            out_file = video.download(output_path = output_path)
+        video = yt.streams.filter(file_extension = 'mp4', res = res).first()
+        out_file = video.download(output_path = output_path)
 
-            Main_window.btn_dwnld.configure(text = '_Downloaded_')
-        
-        Thread(target = main, daemon = True).start()
+        Main_window.btn_dwnld.configure(text = '_Downloaded_')
 
     
     def dwnld_video_mp4_cut(self, yt, res, output_path, cutfrom, cutto):
-        def main():
-            Main_window.btn_dwnld.configure(text = 'Downloading...')
+        Main_window.btn_dwnld.configure(text = 'Downloading...')
 
-            current_dir = os.getcwd()
+        current_dir = os.getcwd()
 
-            video = yt.streams.filter(file_extension = 'mp4', res = res).first()
-            out_file = video.download(output_path = output_path)
-            full_file = out_file[:-4] + '(full).mp4'
+        video = yt.streams.filter(file_extension = 'mp4', res = res).first()
+        out_file = video.download(output_path = output_path)
+        full_file = out_file[:-4] + '(full).mp4'
 
-            os.rename(out_file, full_file)
+        os.rename(out_file, full_file)
 
-            os.chdir(output_path)
+        os.chdir(output_path)
 
-            cmd = 'ffmpeg -i "{}" -ss {} -to {} -async 1 "{}"'.format(full_file, cutfrom,
-                cutto, out_file[:-4] + '(cutted)' + '.mp4')
+        cmd = 'ffmpeg -i "{}" -ss {} -to {} -async 1 "{}"'.format(full_file, cutfrom,
+            cutto, out_file[:-4] + '(cutted)' + '.mp4')
 
-            Main_window.btn_dwnld.configure(text = 'Processing...')
+        Main_window.btn_dwnld.configure(text = 'Processing...')
 
-            os.system(cmd)
+        os.system(cmd)
 
-            os.chdir(current_dir)
+        os.chdir(current_dir)
 
-            Main_window.btn_dwnld.configure(text = '_Downloaded_')
-
-        Thread(target = main, daemon = True).start()
-
+        Main_window.btn_dwnld.configure(text = '_Downloaded_')
 
 
 def main():
